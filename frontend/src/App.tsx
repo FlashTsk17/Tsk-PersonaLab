@@ -144,6 +144,7 @@ export default function App() {
   const [sharedId, setSharedId] = useState<string | null>(null);
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "shared" | "error">("idle");
   const [sharedLoading, setSharedLoading] = useState(false);
+  const [selectedAnswer, setSelectedAnswer] = useState<Profile | null>(null);
 
   const scores = useMemo(() => {
     const next = { ...initialScores };
@@ -183,6 +184,7 @@ export default function App() {
     setShareStatus("idle");
     setCurrent(0);
     setAnswers([]);
+    setSelectedAnswer(null);
     setScreen("test");
   }
 
@@ -217,6 +219,7 @@ export default function App() {
   }
 
   function answer(profile: Profile) {
+    setSelectedAnswer(profile);
     const nextAnswers = [...answers, profile];
     setAnswers(nextAnswers);
 
@@ -236,7 +239,10 @@ export default function App() {
           setScreen("result");
         });
     } else {
-      setCurrent(current + 1);
+      window.setTimeout(() => {
+        setSelectedAnswer(null);
+        setCurrent(current + 1);
+      }, 180);
     }
   }
 
@@ -257,8 +263,8 @@ export default function App() {
           <h1>{question.text}</h1>
           <div className="answers">
             {question.options.map((option) => (
-              <button className="answer" key={option.label} onClick={() => answer(option.profile)}>
-                <span>{option.label}</span><b>→</b>
+              <button className={"answer" + (selectedAnswer === option.profile ? " selected" : "")} key={option.label} onClick={() => answer(option.profile)}>
+                <span>{option.label}</span><b>{selectedAnswer === option.profile ? "✓" : "→"}</b>
               </button>
             ))}
           </div>
