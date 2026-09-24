@@ -65,3 +65,16 @@ em{font-family:"Playfair Display",Georgia,serif;font-weight:600}
 @keyframes resultIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 @keyframes floatOrb{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-7px) rotate(4deg)}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* Shareable result card */
+.result-card{max-width:620px;margin:42px auto 0;padding:30px 34px 32px;border-radius:28px;background:#171717;color:#fff;text-align:left;position:relative;overflow:hidden;box-shadow:0 24px 70px rgba(23,23,23,.16)}
+.result-card::before{content:"";position:absolute;width:260px;height:260px;border-radius:50%;background:#f2c98d;right:-105px;top:-115px;opacity:.95}
+.result-card::after{content:"✦";position:absolute;right:35px;top:28px;color:#171717;font-size:44px}
+.result-card-top{display:flex;justify-content:space-between;position:relative;z-index:1;font-size:9px;letter-spacing:.16em;font-weight:700;opacity:.58}
+.result-card-orb{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;background:#f2c98d;color:#171717;font-size:25px;margin:46px 0 22px}
+.result-card-label{font-size:10px;letter-spacing:.16em;font-weight:700;opacity:.55;margin:0 0 9px}
+.result-card h2{font-family:"Playfair Display",Georgia,serif;font-size:58px;line-height:1;letter-spacing:-.04em;margin:0}
+.result-card-tagline{font-family:"Playfair Display",Georgia,serif;font-size:20px;margin:10px 0 26px;opacity:.8}
+.result-card-rule{height:1px;background:rgba(255,255,255,.18);width:100%;margin-bottom:17px}
+.result-card-footer{font-size:11px;letter-spacing:.01em;opacity:.5;margin:0}
+@media(max-width:520px){.result-card{padding:24px}.result-card h2{font-size:45px}.result-card-orb{margin-top:42px}}
