@@ -316,7 +316,25 @@ export default function App() {
           </div>
           <div className="result-actions">
             <button className="primary" onClick={shareResult}>Share my result <span>↗</span></button>
+            <button className="secondary" onClick={() => window.print()}>Save result <span>↓</span></button>
             <button className="secondary" onClick={startTest}>Take it again <span>↻</span></button>
+          </div>
+          <div className="share-tools">
+            <button className="text-action" onClick={async () => {
+              if (!sharedId) {
+                await shareResult();
+                return;
+              }
+              const link = window.location.origin + window.location.pathname + "?result=" + sharedId;
+              try {
+                await navigator.clipboard.writeText(link);
+                setShareStatus("copied");
+              } catch {
+                setShareStatus("error");
+              }
+            }}>Copy link</button>
+            <span>·</span>
+            <button className="text-action" onClick={() => window.print()}>Print / PDF</button>
           </div>
           <div className={"share-feedback " + shareStatus}>
             {shareStatus === "copied" && "✓ Link copied — paste it anywhere."}
