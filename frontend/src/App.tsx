@@ -144,6 +144,8 @@ export default function App() {
   const [sharedId, setSharedId] = useState<string | null>(null);
   const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "shared" | "error">("idle");
   const [sharedLoading, setSharedLoading] = useState(false);
+  const [history, setHistory] = useState<Array<{ id: string; profile: Profile; createdAt: string }>>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<Profile | null>(null);
 
   const scores = useMemo(() => {
@@ -177,6 +179,21 @@ export default function App() {
       .catch(() => setScreen("home"))
       .finally(() => setSharedLoading(false));
   }, []);
+
+  async function openHistory() {
+    setHistoryLoading(true);
+    setScreen("history");
+    try {
+      const response = await fetch((import.meta.env.VITE_API_URL ?? "http://localhost:4000") + "/api/results");
+      if (!response.ok) throw new Error("History unavailable");
+      const data = await response.json();
+      setHistory(data.results ?? []);
+    } catch {
+      setHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }
 
   function startTest() {
     window.history.replaceState({}, "", window.location.pathname);
@@ -244,6 +261,47 @@ export default function App() {
         setCurrent(current + 1);
       }, 180);
     }
+  }
+
+  if (screen === "history") {
+    return (
+      <main className="history-page">
+        <nav className="nav">
+          <div className="brand"><span className="brand-mark">T</span><span>PersonaLab</span></div>
+          <button className="nav-link" onClick={() => setScreen("home")}>Back home</button>
+        </nav>
+        <section className="history-shell">
+          <p className="eyebrow">YOUR JOURNEY</p>
+          <h1>Your <em>history</em>.</h1>
+          <p className="history-intro">A place for the profiles you've discovered along the way.</p>
+          {historyLoading ? (
+            <div className="history-empty"><div className="loader-orb small">✦</div><p>Loading your discoveries…</p></div>
+          ) : history.length === 0 ? (
+            <div className="history-empty">
+              <div className="empty-mark">○</div>
+              <h2>No saved results yet.</h2>
+              <p>Take the test and your next discovery can appear here.</p>
+              <button className="primary" onClick={startTest}>Discover my profile <span>→</span></button>
+            </div>
+          ) : (
+            <div className="history-list">
+              {history.map((item) => (
+                <article className="history-item" key={item.id}>
+                  <div>
+                    <span className="history-date">{new Date(item.createdAt).toLocaleDateString()}</span>
+                    <h2>{item.profile}</h2>
+                  </div>
+                  <button className="text-action" onClick={() => {
+                    window.history.replaceState({}, "", window.location.pathname + "?result=" + item.id);
+                    window.location.reload();
+                  }}>Open result ↗</button>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      </main>
+    );
   }
 
   if (screen === "test") {
@@ -352,7 +410,10 @@ export default function App() {
     <main className="page">
       <nav className="nav">
         <div className="brand"><span className="brand-mark">T</span><span>PersonaLab</span></div>
-        <button className="nav-link" onClick={startTest}>Start the test</button>
+        <div className="nav-actions">
+          <button className="nav-link" onClick={openHistory}>History</button>
+          <button className="nav-link" onClick={startTest}>Start the test</button>
+        </div>
       </nav>
       <section className="hero">
         <div className="hero-copy">
