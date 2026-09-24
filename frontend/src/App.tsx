@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Profile = "Explorer" | "Strategist" | "Connector" | "Builder";
 
@@ -141,6 +141,9 @@ export default function App() {
   const [screen, setScreen] = useState<"home" | "test" | "result">("home");
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Profile[]>([]);
+  const [sharedId, setSharedId] = useState<string | null>(null);
+  const [shareStatus, setShareStatus] = useState<"idle" | "copied" | "shared" | "error">("idle");
+  const [sharedLoading, setSharedLoading] = useState(false);
 
   const scores = useMemo(() => {
     const next = { ...initialScores };
@@ -152,10 +155,65 @@ export default function App() {
     scores[profile] > scores[best] ? profile : best,
   "Explorer");
 
+  useEffect(() => {
+    const shared = new URLSearchParams(window.location.search).get("result");
+    if (!shared) return;
+
+    setSharedId(shared);
+    setSharedLoading(true);
+    fetch((import.meta.env.VITE_API_URL ?? "http://localhost:4000") + "/api/results/" + shared)
+      .then((response) => {
+        if (!response.ok) throw new Error("Shared result not found");
+        return response.json();
+      })
+      .then((data) => {
+        const restored = (Object.keys(initialScores) as Profile[]).flatMap((profile) =>
+          Array.from({ length: Number(data.scores?.[profile] ?? 0) }, () => profile),
+        );
+        setAnswers(restored);
+        setScreen("result");
+      })
+      .catch(() => setScreen("home"))
+      .finally(() => setSharedLoading(false));
+  }, []);
+
   function startTest() {
+    window.history.replaceState({}, "", window.location.pathname);
+    setSharedId(null);
+    setShareStatus("idle");
     setCurrent(0);
     setAnswers([]);
     setScreen("test");
+  }
+
+  async function shareResult() {
+    setShareStatus("idle");
+    try {
+      const response = await fetch((import.meta.env.VITE_API_URL ?? "http://localhost:4000") + "/api/results", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answers }),
+      });
+      if (!response.ok) throw new Error("Could not create share link");
+      const data = await response.json();
+      const link = window.location.origin + window.location.pathname + "?result=" + data.shareId;
+      setSharedId(data.shareId);
+
+      if (navigator.share) {
+        await navigator.share({
+          title: "Mon profil PersonaLab : " + result,
+          text: "J'ai découvert mon profil " + result + " sur PersonaLab. Découvre le tien 👇",
+          url: link,
+        });
+        setShareStatus("shared");
+      } else {
+        await navigator.clipboard.writeText(link);
+        setShareStatus("copied");
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setShareStatus("error");
+    }
   }
 
   function answer(profile: Profile) {
@@ -210,6 +268,16 @@ export default function App() {
     );
   }
 
+  if (sharedLoading) {
+    return (
+      <main className="result-page loading-page">
+        <div className="loader-orb">✦</div>
+        <p className="eyebrow">PERSONALITY DISCOVERY</p>
+        <h1>Opening your <em>shared</em> result…</h1>
+      </main>
+    );
+  }
+
   if (screen === "result") {
     const info = profileInfo[result];
     return (
@@ -228,7 +296,16 @@ export default function App() {
               <div key={profile}><span>{profile}</span><strong>{scores[profile]}</strong></div>
             ))}
           </div>
-          <button className="primary" onClick={startTest}>Take it again <span>↻</span></button>
+          <div className="result-actions">
+            <button className="primary" onClick={shareResult}>Share my result <span>↗</span></button>
+            <button className="secondary" onClick={startTest}>Take it again <span>↻</span></button>
+          </div>
+          <div className={"share-feedback " + shareStatus}>
+            {shareStatus === "copied" && "✓ Link copied — paste it anywhere."}
+            {shareStatus === "shared" && "✓ Shared successfully."}
+            {shareStatus === "error" && "We couldn't create the share link. Try again."}
+            {sharedId && shareStatus === "idle" && "Your result can be shared with a unique link."}
+          </div>
           <p className="disclaimer">PersonaLab is a self-reflection experience, not a clinical or psychological diagnosis.</p>
         </section>
       </main>
