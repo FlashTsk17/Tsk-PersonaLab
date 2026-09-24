@@ -13,6 +13,7 @@ type ResultRecord = {
 const app = express();
 const port = Number(process.env.PORT ?? 4000);
 const results = new Map<string, ResultRecord>();
+const users = new Map<string, { email: string; password: string }>();
 
 app.use(cors());
 app.use(express.json());
@@ -23,6 +24,35 @@ app.get("/api/health", (_req, res) => {
     service: "persona-lab-api",
     timestamp: new Date().toISOString(),
   });
+});
+
+app.post("/api/auth/register", (req, res) => {
+  const { email, password } = req.body;
+
+  if (typeof email !== "string" || typeof password !== "string" || password.length < 6) {
+    return res.status(400).json({ error: "email and a password of at least 6 characters are required" });
+  }
+
+  if (users.has(email.toLowerCase())) {
+    return res.status(409).json({ error: "account already exists" });
+  }
+
+  // Temporary implementation: credentials are kept in memory until persistence/auth is completed.
+  users.set(email.toLowerCase(), { email: email.toLowerCase(), password });
+
+  return res.status(201).json({ message: "account created", email: email.toLowerCase() });
+});
+
+app.post("/api/auth/login", (req, res) => {
+  const { email, password } = req.body;
+  const user = typeof email === "string" ? users.get(email.toLowerCase()) : undefined;
+
+  if (!user || user.password !== password) {
+    return res.status(401).json({ error: "invalid email or password" });
+  }
+
+  // Session/token handling is intentionally not implemented yet.
+  return res.json({ message: "login accepted", email: user.email });
 });
 
 app.get("/api/profiles", (_req, res) => {
