@@ -78,3 +78,15 @@ em{font-family:"Playfair Display",Georgia,serif;font-weight:600}
 .result-card-rule{height:1px;background:rgba(255,255,255,.18);width:100%;margin-bottom:17px}
 .result-card-footer{font-size:11px;letter-spacing:.01em;opacity:.5;margin:0}
 @media(max-width:520px){.result-card{padding:24px}.result-card h2{font-size:45px}.result-card-orb{margin-top:42px}}
+
+/* Share + print polish */
+.share-tools{display:flex;justify-content:center;align-items:center;gap:9px;margin-top:3px;font-size:12px;color:#aaa196}
+.text-action{border:0;background:none;padding:4px;color:#6e665d;text-decoration:underline;text-underline-offset:3px;cursor:pointer;font:inherit}
+.text-action:hover{color:#171717}
+@media print{
+  body{background:#fff!important}
+  .nav,.result-actions,.share-tools,.share-feedback,.disclaimer{display:none!important}
+  .result-page{min-height:auto;padding:20px}
+  .result-shell{max-width:760px!important;margin:0 auto!important}
+  .result-card{box-shadow:none!important;break-inside:avoid}
+}
