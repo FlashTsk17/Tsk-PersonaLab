@@ -163,7 +163,20 @@ export default function App() {
     setAnswers(nextAnswers);
 
     if (current === questions.length - 1) {
-      setScreen("result");
+      fetch(`${import.meta.env.VITE_API_URL ?? "http://localhost:4000"}/api/results`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answers: nextAnswers }),
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("PersonaLab API result:", data);
+          setScreen("result");
+        })
+        .catch((error) => {
+          console.error("Could not reach PersonaLab API:", error);
+          setScreen("result");
+        });
     } else {
       setCurrent(current + 1);
     }
