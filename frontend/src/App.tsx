@@ -138,7 +138,11 @@ const initialScores: Record<Profile, number> = {
 };
 
 export default function App() {
-  const [screen, setScreen] = useState<"home" | "test" | "result">("home");
+  const [screen, setScreen] = useState<"home" | "test" | "result" | "auth">("home");
+  const [authMode, setAuthMode] = useState<"login" | "signup">("login");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authMessage, setAuthMessage] = useState("");
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Profile[]>([]);
   const [sharedId, setSharedId] = useState<string | null>(null);
@@ -261,6 +265,37 @@ export default function App() {
         setCurrent(current + 1);
       }, 180);
     }
+  }
+
+  if (screen === "auth") {
+    return (
+      <main className="auth-page">
+        <nav className="nav">
+          <div className="brand"><span className="brand-mark">T</span><span>PersonaLab</span></div>
+          <button className="nav-link" onClick={() => setScreen("home")}>Back home</button>
+        </nav>
+        <section className="auth-shell">
+          <p className="eyebrow">YOUR PERSONA JOURNEY</p>
+          <h1>{authMode === "login" ? "Welcome <em>back</em>." : "Keep your <em>discoveries</em>."}</h1>
+          <p className="auth-intro">Create an account to keep your personality discoveries in one place.</p>
+          <form className="auth-form" onSubmit={(event) => {
+            event.preventDefault();
+            setAuthMessage("Account flow is not connected yet.");
+          }}>
+            <label>Email<input type="email" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} placeholder="you@example.com" required /></label>
+            <label>Password<input type="password" value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} placeholder="••••••••" required minLength={6} /></label>
+            <button className="primary" type="submit">{authMode === "login" ? "Log in" : "Create account"} <span>→</span></button>
+          </form>
+          {authMessage && <p className="auth-message">{authMessage}</p>}
+          <button className="text-action auth-switch" onClick={() => {
+            setAuthMode(authMode === "login" ? "signup" : "login");
+            setAuthMessage("");
+          }}>
+            {authMode === "login" ? "Need an account? Create one" : "Already have an account? Log in"}
+          </button>
+        </section>
+      </main>
+    );
   }
 
   if (screen === "history") {
