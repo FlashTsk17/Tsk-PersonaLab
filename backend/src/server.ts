@@ -1,8 +1,17 @@
 import cors from "cors";
 import express from "express";
+import { randomUUID } from "node:crypto";
+
+type ResultRecord = {
+  id: string;
+  profile: string | null;
+  scores: Record<string, number>;
+  createdAt: string;
+};
 
 const app = express();
 const port = Number(process.env.PORT ?? 4000);
+const results = new Map<string, ResultRecord>();
 
 app.use(cors());
 app.use(express.json());
@@ -17,54 +26,48 @@ app.get("/api/health", (_req, res) => {
 
 app.get("/api/profiles", (_req, res) => {
   res.json([
-    {
-      id: "explorer",
-      name: "Explorer",
-      tagline: "Curious by nature.",
-    },
-    {
-      id: "strategist",
-      name: "Strategist",
-      tagline: "You see the bigger picture.",
-    },
-    {
-      id: "connector",
-      name: "Connector",
-      tagline: "People are part of the picture.",
-    },
-    {
-      id: "builder",
-      name: "Builder",
-      tagline: "You make ideas tangible.",
-    },
+    { id: "explorer", name: "Explorer", tagline: "Curious by nature." },
+    { id: "strategist", name: "Strategist", tagline: "You see the bigger picture." },
+    { id: "connector", name: "Connector", tagline: "People are part of the picture." },
+    { id: "builder", name: "Builder", tagline: "You make ideas tangible." },
   ]);
 });
 
 app.post("/api/results", (req, res) => {
   const { answers } = req.body;
 
-  if (!Array.isArray(answers) || answers.length === 0) {
-    return res.status(400).json({
-      error: "answers must be a non-empty array",
-    });
+  if (!Array.isArray(answers) || answers.length === 0 || answers.some((answer) => typeof answer !== "string")) {
+    return res.status(400).json({ error: "answers must be a non-empty array of strings" });
   }
 
-  // Temporary in-memory persistence.
-  // This is intentionally simple for the first backend milestone.
   const counts = answers.reduce<Record<string, number>>((acc, profile) => {
     acc[profile] = (acc[profile] ?? 0) + 1;
     return acc;
   }, {});
 
   const profile = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
-
-  return res.status(201).json({
+  const id = randomUUID();
+  const record: ResultRecord = {
+    id,
     profile,
     scores: counts,
     createdAt: new Date().toISOString(),
-  });
+  };
+
+  // Deliberately in-memory for now: restarting the API invalidates old share links.
+  results.set(id, record);
+
+  return res.status(201).json({ ...record, shareId: id });
+});
+
+app.get("/api/results/:id", (req, res) => {
+  const record = results.get(req.params.id);
+  if (!record) {
+    return res.status(404).json({ error: "Result not found or share link expired" });
+  }
+  return res.json(record);
 });
 
 app.listen(port, () => {
-  console.log(`PersonaLab API running on http://localhost:${port}`);
+  console.log("PersonaLab API running on http://localhost:" + port);
 });
