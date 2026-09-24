@@ -297,6 +297,18 @@ export default function App() {
           <h1>You are an <em>{result}</em>.</h1>
           <p className="tagline">{info.tagline}</p>
           <p className="result-description">{info.description}</p>
+          <div className="result-card" id="persona-result-card">
+            <div className="result-card-top">
+              <span>TSK'S TECH SERVICES</span>
+              <span>PERSONALAB</span>
+            </div>
+            <div className="result-card-orb">✦</div>
+            <p className="result-card-label">MY PERSONA</p>
+            <h2>{result}</h2>
+            <p className="result-card-tagline">{info.tagline}</p>
+            <div className="result-card-rule" />
+            <p className="result-card-footer">Discover yourself. Understand your personality.</p>
+          </div>
           <div className="score-row">
             {(Object.keys(scores) as Profile[]).map((profile) => (
               <div key={profile}><span>{profile}</span><strong>{scores[profile]}</strong></div>
