@@ -60,6 +60,14 @@ app.post("/api/results", (req, res) => {
   return res.status(201).json({ ...record, shareId: id });
 });
 
+app.get("/api/results", (_req, res) => {
+  const items = Array.from(results.values())
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .map(({ id, profile, createdAt }) => ({ id, profile, createdAt }));
+
+  return res.json({ results: items });
+});
+
 app.get("/api/results/:id", (req, res) => {
   const record = results.get(req.params.id);
   if (!record) {
