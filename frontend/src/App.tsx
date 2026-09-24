@@ -1,40 +1,241 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-const features = [
-  ["10 min", "Short & simple"],
-  ["4 types", "Original profiles"],
-  ["100%", "Self-reflection"],
+type Profile = "Explorer" | "Strategist" | "Connector" | "Builder";
+
+type Question = {
+  id: number;
+  text: string;
+  options: { label: string; profile: Profile }[];
+};
+
+const questions: Question[] = [
+  {
+    id: 1,
+    text: "You receive a completely free afternoon. What sounds most natural?",
+    options: [
+      { label: "Try something I've never done before", profile: "Explorer" },
+      { label: "Work on a plan or personal goal", profile: "Strategist" },
+      { label: "Call someone and spend time together", profile: "Connector" },
+      { label: "Build, fix or create something", profile: "Builder" },
+    ],
+  },
+  {
+    id: 2,
+    text: "When a new project starts, what do you look for first?",
+    options: [
+      { label: "Possibilities and new directions", profile: "Explorer" },
+      { label: "The objective and the best strategy", profile: "Strategist" },
+      { label: "The people who will make it happen", profile: "Connector" },
+      { label: "The first thing I can actually build", profile: "Builder" },
+    ],
+  },
+  {
+    id: 3,
+    text: "A difficult problem appears. Your first instinct is to...",
+    options: [
+      { label: "Experiment with a different approach", profile: "Explorer" },
+      { label: "Break it down and analyze it", profile: "Strategist" },
+      { label: "Ask someone for another perspective", profile: "Connector" },
+      { label: "Start testing a practical solution", profile: "Builder" },
+    ],
+  },
+  {
+    id: 4,
+    text: "What motivates you most when learning something new?",
+    options: [
+      { label: "Discovering what is possible", profile: "Explorer" },
+      { label: "Mastering how it works", profile: "Strategist" },
+      { label: "Sharing the experience with others", profile: "Connector" },
+      { label: "Using it to make something useful", profile: "Builder" },
+    ],
+  },
+  {
+    id: 5,
+    text: "In a team, people usually come to you for...",
+    options: [
+      { label: "Fresh ideas", profile: "Explorer" },
+      { label: "Structure and direction", profile: "Strategist" },
+      { label: "Communication and connection", profile: "Connector" },
+      { label: "Getting things done", profile: "Builder" },
+    ],
+  },
+  {
+    id: 6,
+    text: "When plans suddenly change, you tend to...",
+    options: [
+      { label: "Get curious about the new possibility", profile: "Explorer" },
+      { label: "Recalculate the best route", profile: "Strategist" },
+      { label: "Check how everyone is doing", profile: "Connector" },
+      { label: "Adapt and keep moving", profile: "Builder" },
+    ],
+  },
+  {
+    id: 7,
+    text: "Which sentence feels closest to you?",
+    options: [
+      { label: "There is always another way to explore.", profile: "Explorer" },
+      { label: "A good decision starts with a clear picture.", profile: "Strategist" },
+      { label: "Great things happen when people connect.", profile: "Connector" },
+      { label: "Ideas become real when someone builds them.", profile: "Builder" },
+    ],
+  },
+  {
+    id: 8,
+    text: "At the end of a productive day, what feels most satisfying?",
+    options: [
+      { label: "I discovered something new.", profile: "Explorer" },
+      { label: "I solved something complex.", profile: "Strategist" },
+      { label: "I helped someone or strengthened a relationship.", profile: "Connector" },
+      { label: "I can point to something I made.", profile: "Builder" },
+    ],
+  },
+  {
+    id: 9,
+    text: "If you had one month to create something, you'd rather...",
+    options: [
+      { label: "Explore several ideas before choosing one", profile: "Explorer" },
+      { label: "Design a precise roadmap first", profile: "Strategist" },
+      { label: "Build it around a community or audience", profile: "Connector" },
+      { label: "Prototype quickly and improve as I go", profile: "Builder" },
+    ],
+  },
+  {
+    id: 10,
+    text: "What do you want this experience to give you?",
+    options: [
+      { label: "A new perspective on myself", profile: "Explorer" },
+      { label: "A clearer understanding of my patterns", profile: "Strategist" },
+      { label: "A better way to understand how I relate to others", profile: "Connector" },
+      { label: "A practical idea I can use", profile: "Builder" },
+    ],
+  },
 ];
 
+const profileInfo: Record<Profile, { tagline: string; description: string }> = {
+  Explorer: {
+    tagline: "Curious by nature.",
+    description: "You tend to learn through discovery, possibilities and experimentation. Variety can be a powerful source of energy for you.",
+  },
+  Strategist: {
+    tagline: "You see the bigger picture.",
+    description: "You naturally look for patterns, structure and direction. Understanding the system helps you make deliberate choices.",
+  },
+  Connector: {
+    tagline: "People are part of the picture.",
+    description: "You tend to notice relationships, perspectives and the human side of an experience. Connection can turn ideas into momentum.",
+  },
+  Builder: {
+    tagline: "You make ideas tangible.",
+    description: "You are drawn toward action, experimentation and useful outcomes. Progress often becomes clearer once you start building.",
+  },
+};
+
+const initialScores: Record<Profile, number> = {
+  Explorer: 0,
+  Strategist: 0,
+  Connector: 0,
+  Builder: 0,
+};
+
 export default function App() {
-  const [started, setStarted] = useState(false);
+  const [screen, setScreen] = useState<"home" | "test" | "result">("home");
+  const [current, setCurrent] = useState(0);
+  const [answers, setAnswers] = useState<Profile[]>([]);
+
+  const scores = useMemo(() => {
+    const next = { ...initialScores };
+    answers.forEach((profile) => { next[profile] += 1; });
+    return next;
+  }, [answers]);
+
+  const result = (Object.keys(scores) as Profile[]).reduce((best, profile) =>
+    scores[profile] > scores[best] ? profile : best,
+  "Explorer");
+
+  function startTest() {
+    setCurrent(0);
+    setAnswers([]);
+    setScreen("test");
+  }
+
+  function answer(profile: Profile) {
+    const nextAnswers = [...answers, profile];
+    setAnswers(nextAnswers);
+
+    if (current === questions.length - 1) {
+      setScreen("result");
+    } else {
+      setCurrent(current + 1);
+    }
+  }
+
+  if (screen === "test") {
+    const question = questions[current];
+    const progress = ((current + 1) / questions.length) * 100;
+
+    return (
+      <main className="test-page">
+        <nav className="nav">
+          <div className="brand"><span className="brand-mark">T</span><span>PersonaLab</span></div>
+          <span className="question-count">{current + 1} / {questions.length}</span>
+        </nav>
+        <div className="progress"><span style={{ width: progress + "%" }} /></div>
+
+        <section className="question-shell">
+          <p className="eyebrow">QUESTION {String(current + 1).padStart(2, "0")}</p>
+          <h1>{question.text}</h1>
+          <div className="answers">
+            {question.options.map((option) => (
+              <button className="answer" key={option.label} onClick={() => answer(option.profile)}>
+                <span>{option.label}</span><b>→</b>
+              </button>
+            ))}
+          </div>
+          <p className="note">Choose the answer that feels most natural. There are no right or wrong answers.</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (screen === "result") {
+    const info = profileInfo[result];
+    return (
+      <main className="result-page">
+        <nav className="nav">
+          <div className="brand"><span className="brand-mark">T</span><span>PersonaLab</span></div>
+        </nav>
+        <section className="result-shell">
+          <p className="eyebrow">YOUR PERSONA</p>
+          <div className="result-orb">✦</div>
+          <h1>You are an <em>{result}</em>.</h1>
+          <p className="tagline">{info.tagline}</p>
+          <p className="result-description">{info.description}</p>
+          <div className="score-row">
+            {(Object.keys(scores) as Profile[]).map((profile) => (
+              <div key={profile}><span>{profile}</span><strong>{scores[profile]}</strong></div>
+            ))}
+          </div>
+          <button className="primary" onClick={startTest}>Take it again <span>↻</span></button>
+          <p className="disclaimer">PersonaLab is a self-reflection experience, not a clinical or psychological diagnosis.</p>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <main className="page">
       <nav className="nav">
-        <div className="brand">
-          <span className="brand-mark">T</span>
-          <span>PersonaLab</span>
-        </div>
-        <button className="nav-link" onClick={() => setStarted(true)}>
-          Start the test
-        </button>
+        <div className="brand"><span className="brand-mark">T</span><span>PersonaLab</span></div>
+        <button className="nav-link" onClick={startTest}>Start the test</button>
       </nav>
-
       <section className="hero">
         <div className="hero-copy">
           <p className="eyebrow">TSK'S TECH SERVICES · PERSONA DISCOVERY</p>
           <h1>Discover yourself.<br /><em>Understand</em> your personality.</h1>
-          <p className="intro">
-            A short, interactive experience designed to help you reflect on
-            how you think, decide, create and connect with others.
-          </p>
-          <button className="primary" onClick={() => setStarted(true)}>
-            Discover my profile <span>→</span>
-          </button>
+          <p className="intro">A short, interactive experience designed to help you reflect on how you think, decide, create and connect with others.</p>
+          <button className="primary" onClick={startTest}>Discover my profile <span>→</span></button>
           <p className="note">No right or wrong answers. Just you.</p>
         </div>
-
         <div className="hero-card">
           <div className="orb">✦</div>
           <p className="card-label">YOUR PROFILE</p>
@@ -43,26 +244,11 @@ export default function App() {
           <p>Explore your natural tendencies through a few thoughtful questions.</p>
         </div>
       </section>
-
       <section className="features">
-        {features.map(([value, label]) => (
-          <div className="feature" key={value}>
-            <strong>{value}</strong>
-            <span>{label}</span>
-          </div>
+        {[["10", "questions"], ["4", "original profiles"], ["100%", "self-reflection"]].map(([value, label]) => (
+          <div className="feature" key={value}><strong>{value}</strong><span>{label}</span></div>
         ))}
       </section>
-
-      {started && (
-        <div className="modal-backdrop" onClick={() => setStarted(false)}>
-          <div className="modal" onClick={(event) => event.stopPropagation()}>
-            <p className="eyebrow">PERSONALITY DISCOVERY</p>
-            <h2>Ready to meet your profile?</h2>
-            <p>The questionnaire is the next step. Your answers will shape an original PersonaLab profile.</p>
-            <button className="primary" onClick={() => setStarted(false)}>Begin questionnaire →</button>
-          </div>
-        </div>
-      )}
     </main>
   );
 }
