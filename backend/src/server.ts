@@ -1,6 +1,7 @@
 import cors from "cors";
 import express from "express";
 import { randomUUID } from "node:crypto";
+import { scoreAnswers } from "./scoring.js";
 
 type ResultRecord = {
   id: string;
@@ -40,17 +41,12 @@ app.post("/api/results", (req, res) => {
     return res.status(400).json({ error: "answers must be a non-empty array of strings" });
   }
 
-  const counts = answers.reduce<Record<string, number>>((acc, profile) => {
-    acc[profile] = (acc[profile] ?? 0) + 1;
-    return acc;
-  }, {});
-
-  const profile = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+  const { profile, scores } = scoreAnswers(answers);
   const id = randomUUID();
   const record: ResultRecord = {
     id,
     profile,
-    scores: counts,
+    scores,
     createdAt: new Date().toISOString(),
   };
 
