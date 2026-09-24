@@ -52,3 +52,16 @@ em{font-family:"Playfair Display",Georgia,serif;font-weight:600}
 .loader-orb{width:86px;height:86px;border-radius:50%;display:grid;place-items:center;background:#f2c98d;font-size:30px;margin-bottom:28px;animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{0%,100%{transform:scale(.96);box-shadow:0 0 0 0 rgba(23,23,23,.08)}50%{transform:scale(1.04);box-shadow:0 0 0 16px rgba(23,23,23,0)}}
 @media(max-width:520px){.result-actions{flex-direction:column}.result-actions button{width:100%}.result-shell{margin-top:55px}}
+
+/* Refined product-level interaction polish */
+.answer{position:relative;overflow:hidden}
+.answer::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent);transform:translateX(-110%);transition:transform .45s}
+.answer:hover::after{transform:translateX(110%)}
+.answer.selected{background:#171717;color:#fff;transform:translateX(5px);border-color:#171717}
+.result-shell{animation:resultIn .55s cubic-bezier(.2,.8,.2,1) both}
+.result-orb{box-shadow:0 16px 45px rgba(23,23,23,.08);animation:floatOrb 4s ease-in-out infinite}
+.score-row div{transition:transform .2s,background .2s}
+.score-row div:hover{transform:translateY(-4px);background:#e1dbd1}
+@keyframes resultIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes floatOrb{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-7px) rotate(4deg)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
